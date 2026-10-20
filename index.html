@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>استخبارات أرقام واتساب - أبو نواف</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 40px; text-align: center; }
+    .logo { width: 80px; height: 80px; margin: 0 auto 20px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    h1 { font-size: 2.5em; margin-bottom: 10px; }
+    .content { padding: 40px; }
+    .input-group { margin-bottom: 30px; }
+    label { display: block; margin-bottom: 10px; font-weight: bold; color: #128C7E; }
+    input { width: 100%; padding: 15px; border: 2px solid #d1fae5; border-radius: 10px; font-size: 1em; }
+    button { background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1em; font-weight: bold; cursor: pointer; }
+    .results { margin-top: 30px; display: none; }
+    .results.show { display: block; }
+    .info-card { background: #f0fdf4; padding: 20px; margin-bottom: 15px; border-radius: 10px; border-right: 4px solid #25D366; }
+    .info-label { font-weight: bold; color: #128C7E; margin-bottom: 5px; }
+    .footer { background: #1e293b; color: white; padding: 30px; text-align: center; }
+    .badge { display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.85em; margin: 5px; }
+    .loading { text-align: center; padding: 40px; display: none; }
+    .loading.show { display: block; }
+    .spinner { border: 4px solid #d1fae5; border-top: 4px solid #25D366; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">
+        <svg width="50" height="50" viewBox="0 0 100 100">
+          <path d="M50 5 L90 25 L90 60 Q90 85 50 95 Q10 85 10 60 L10 25 Z" fill="#25D366"/>
+          <text x="50" y="60" font-size="32" font-weight="bold" fill="white" text-anchor="middle">AN</text>
+        </svg>
+      </div>
+      <h1>🔍 استخبارات أرقام واتساب</h1>
+      <p>تحليل شامل لأرقام الهواتف ومعلوماتها</p>
+    </div>
+    
+    <div class="content">
+      <div class="input-group">
+        <label>رقم الهاتف (مع رمز الدولة)</label>
+        <input type="tel" id="phone" placeholder="+966501234567" />
+      </div>
+      
+      <button onclick="lookup()" id="lookupBtn">🔍 بحث وتحليل</button>
+      
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>جاري تحليل الرقم...</p>
+      </div>
+      
+      <div class="results" id="results"></div>
+    </div>
+    
+    <div class="footer">
+      <div style="display:flex;align-items:center;justify-content:center;gap:15px;margin-bottom:20px;">
+        <svg width="50" height="50" viewBox="0 0 100 100">
+          <path d="M50 5 L90 25 L90 60 Q90 85 50 95 Q10 85 10 60 L10 25 Z" fill="#25D366"/>
+          <text x="50" y="60" font-size="32" font-weight="bold" fill="white" text-anchor="middle">AN</text>
+        </svg>
+        <div>
+          <div style="font-size:1.2em;font-weight:bold;">أبو نواف - هكر أخلاقي</div>
+          <div style="color:#94a3b8;">أدوات OSINT متقدمة</div>
+        </div>
+      </div>
+      <span class="badge">🛡️ هكر أخلاقي</span>
+      <span class="badge">🔍 OSINT</span>
+      <span class="badge">📊 تحليل شامل</span>
+    </div>
+  </div>
+  
+  <script>
+    async function lookup() {
+      const phone = document.getElementById('phone').value.trim();
+      if (!phone) { alert('الرجاء إدخال رقم الهاتف'); return; }
+      
+      const btn = document.getElementById('lookupBtn');
+      const loading = document.getElementById('loading');
+      const results = document.getElementById('results');
+      
+      btn.disabled = true;
+      loading.classList.add('show');
+      results.classList.remove('show');
+      
+      try {
+        const response = await fetch('/api/lookup?phone=' + encodeURIComponent(phone));
+        const data = await response.json();
+        
+        let html = '';
+        
+        // Phone info
+        html += '<div class="info-card">';
+        html += '<div class="info-label">📱 معلومات الرقم</div>';
+        html += '<div>الرقم: ' + (data.phone?.formatted || phone) + '</div>';
+        html += '<div>الدولة: ' + (data.phone?.country?.flag || '🌍') + ' ' + (data.phone?.country?.country || 'غير معروف') + '</div>';
+        html += '<div>الأرقام: ' + (data.phone?.digits || '') + '</div>';
+        html += '</div>';
+        
+        // WhatsApp status
+        if (data.whatsapp) {
+          html += '<div class="info-card">';
+          html += '<div class="info-label">💬 حالة واتساب</div>';
+          html += '<div>موجود على واتساب: ' + (data.whatsapp.onWhatsApp ? '✅ نعم' : '❌ لا') + '</div>';
+          if (data.whatsapp.checkUrl) {
+            html += '<div><a href="' + data.whatsapp.checkUrl + '" target="_blank" style="color:#25D366;">فتح المحادثة</a></div>';
+          }
+          html += '</div>';
+        }
+        
+        // Intelligence
+        if (data.intelligence) {
+          html += '<div class="info-card">';
+          html += '<div class="info-label">🔍 معلومات استخباراتية</div>';
+          html += '<div>الدولة: ' + (data.intelligence.country?.country || 'غير معروف') + '</div>';
+          html += '<div>رابط واتساب المباشر: <a href="' + data.intelligence.whatsappLink + '" target="_blank" style="color:#25D366;">' + data.intelligence.whatsappLink + '</a></div>';
+          html += '</div>';
+        }
+        
+        results.innerHTML = html;
+        results.classList.add('show');
+      } catch (err) {
+        alert('حدث خطأ: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        loading.classList.remove('show');
+      }
+    }
+  </script>
+</body>
+</html>
